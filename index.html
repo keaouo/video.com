@@ -96,14 +96,25 @@
     #video-player {
         width: 100%;
     }
-    #close-btn {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        color: white;
-        font-size: 24px;
-        cursor: pointer;
-    }
+
+#close-btn {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 120px; 
+    white-space: nowrap; 
+    padding: 30px;
+    background: linear-gradient(to right, red, green);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+
+}
     .loading {
         text-align: center;
         padding: 20px;
@@ -114,7 +125,7 @@
         animation: scrollText 6s linear infinite;
         display: inline-block;
         padding-left: 100%;
-        background: linear-gradient(90deg, red, blue); /* 移到这里 */
+        background: linear-gradient(90deg, red, blue); 
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
@@ -126,15 +137,16 @@
     }
 </style>
     <div class="movie-grid" id="movie-container">
-        <div class="loading">加载中...</div>
+        <div class="loading">加载中请稍等...</div>
     </div>
 
     <div id="player-modal">
         <div id="player-container">
             <video id="video-player" controls></video>
-            <div id="close-btn">×</div>
+            <div id="close-btn">点击此处关闭播放器</div>
         </div>
     </div>
+
 <script>
     // 配置
     const CONFIG = {
@@ -212,8 +224,7 @@
         const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
         const clientHeight = document.documentElement.clientHeight || window.innerHeight;
         
-        // 距离底部200px时加载
-        if (scrollTop + clientHeight >= scrollHeight - 200 && !CONFIG.isLoading && CONFIG.hasMore) {
+        if (scrollTop + clientHeight >= scrollHeight - 800 && !CONFIG.isLoading && CONFIG.hasMore) {
             loadMoreMovies();
         }
     }
