@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>视频直播平台</title>
+    <style>
+        /* 全局样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f0f0f0;
+            padding: 10px;
+        }
+
+        /* 加载提示样式 */
+        #loading {
+            display: none; /* 默认隐藏 */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 主容器布局 */
+        .container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        /* 卡片基础样式 */
+        .card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+            cursor: pointer;
+            height: 160px; /* 固定高度 */
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* 卡片内容 */
+        .card-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
+            color: #ffffff;
+            padding: 10px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-number {
+            font-size: 12px;
+            text-align: right;
+        }
+
+        /* 返回按钮样式 */
+        .back-btn {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            background-color: #ff4d4d;
+            color: #ffffff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 16px;
+            z-index: 1000;
+            display: none; /* 默认隐藏 */
+        }
+
+        /* 视频播放器容器 */
+        #videoPlayer {
+            display: none; /* 默认隐藏 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        #videoPlayer video {
+            width: 100%;
+            height: auto;
+            max-height: 80vh;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                height: 140px;
+            }
+
+            .card-title {
+                font-size: 12px;
+            }
+
+            .card-number {
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载提示 -->
+    <div id="loading" class="loading">正在加载数据...</div>
+
+    <!-- 返回按钮 -->
+    <button class="back-btn" id="backButton" onclick="goBack()">返回主页</button>
+
+    <!-- 主页内容 -->
+    <div id="mainContainer" class="container"></div>
+
+    <!-- 视频播放器 -->
+    <div id="videoPlayer">
+        <video id="currentVideo" controls playsinline webkit-playsinline>
+            您的浏览器不支持视频播放
+        </video>
+    </div>
+
+    <script>
+        // API基础URL
+        const API_BASE = 'http://api.hclyz.com:81/mf/';
+
+        // 控制页面显示状态
+        let currentPage = 'home'; // 'home' 或 'detail'
+        const mainContainer = document.getElementById('mainContainer');
+        const videoPlayer = document.getElementById('videoPlayer');
+        const backButton = document.getElementById('backButton');
+        const loadingIndicator = document.getElementById('loading');
+
+        // 显示加载提示
+        function showLoading() {
+            loadingIndicator.style.display = 'block';
+        }
+
+        // 隐藏加载提示
+        function hideLoading() {
+            loadingIndicator.style.display = 'none';
+        }
+
+        // 显示错误提示
+        function showError(message) {
+            alert(`错误: ${message}`);
+            console.error(message);
+            hideLoading();
+        }
+
+        // 主页数据加载与渲染
+        async function loadMainPage() {
+            showLoading();
+            mainContainer.innerHTML = ''; // 清空主页内容
+            backButton.style.display = 'none'; // 隐藏返回按钮
+            videoPlayer.style.display = 'none'; // 隐藏视频播放器
+
+            try {
+                const response = await fetch(`${API_BASE}json.txt`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP 错误! 状态: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // 验证数据格式
+                if (!data.pingtai || !Array.isArray(data.pingtai)) {
+                    throw new Error('主页数据格式错误：缺少pingtai数组');
+                }
+
+                // 渲染卡片
+                mainContainer.innerHTML = data.pingtai.map(item => `
+                    <div class="card" onclick="showDetail('${item.address}')">
+                        <img src="${item.xinimg}" alt="${item.title}">
+                        <div class="card-content">
+                            <div class="card-title">${decodeURIComponent(item.title)}</div>
+                            <div class="card-number">在线人数：${item.Number}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                currentPage = 'home';
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 详情页数据加载与渲染
+        async function showDetail(address) {
+            showLoading();
+            mainContainer.style.display = 'none'; // 隐藏主页内容
+            backButton.style.display = 'block'; // 显示返回按钮
+            videoPlayer.style.display = 'none'; // 隐藏视频播放器（稍后在点击视频时显示）
+
+            try {
+                const detailUrl = `${API_BASE}${encodeURIComponent(address)}`;
+                const response = await fetch(detailUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP 错误! 状态: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // 验证数据格式
+                if (!data.zhubo || !Array.isArray(data.zhubo)) {
+                    throw new Error('详情页数据格式错误：缺少zhubo数组');
+                }
+
+                // 渲染视频卡片
+                const videoContainer = document.createElement('div');
+                videoContainer.innerHTML = data.zhubo.map(video => `
+                    <div class="card" onclick="playVideo('${video.m3u8}')">
+                        <img src="${video.img}" alt="${video.title}">
+                        <div class="card-content">
+                            <div class="card-title">${decodeURIComponent(video.title)}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                mainContainer.style.display = 'none'; // 隐藏主页容器
+                videoPlayer.style.display = 'none'; // 先隐藏视频播放器
+                document.body.appendChild(videoContainer); // 将视频卡片添加到body
+
+                currentPage = 'detail';
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 播放视频
+        function playVideo(m3u8Url) {
+            showLoading();
+            const videoPlayer = document.getElementById('videoPlayer');
+            const currentVideo = document.getElementById('currentVideo');
+
+            try {
+                currentVideo.src = m3u8Url;
+                currentVideo.play().then(() => {
+                    videoPlayer.style.display = 'flex'; // 使用flex布局居中
+                    videoPlayer.style.justifyContent = 'center';
+                    videoPlayer.style.alignItems = 'center';
+                }).catch(error => {
+                    throw new Error(`视频播放失败: ${error.message}`);
+                });
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 返回主页
+        function goBack() {
+            // 清除动态添加的视频卡片
+            const videoContainer = document.querySelector('body > div:not(#mainContainer):not(#videoPlayer):not(#loading):not(.back-btn)');
+            if (videoContainer) {
+                videoContainer.remove();
+            }
+
+            mainContainer.style.display = 'grid'; // 显示主页容器
+            backButton.style.display = 'none'; // 隐藏返回按钮
+            videoPlayer.style.display = 'none'; // 隐藏视频播放器
+            currentPage = 'home';
+        }
+
+        // 页面加载完成后初始化主页
+        window.onload = () => {
+            loadMainPage();
+        };
+    </script>
+</body>
+</html>
