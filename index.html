@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 
-<!-- ✅ 禁止缩放（基础） -->
+<!-- ✅ 禁止缩放 -->
 <meta name="viewport"
   content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 
@@ -11,7 +11,7 @@
 
 <style>
 /* =========================
-   基础
+   基础重置
 ========================= */
 * {
     box-sizing: border-box;
@@ -27,40 +27,44 @@ html, body {
 }
 
 /* =========================
-   主体
+   主体布局
 ========================= */
 .container {
     height: 100%;
-    padding: env(safe-area-inset-top, 12px)
-             env(safe-area-inset-right, 12px)
-             env(safe-area-inset-bottom, 20px)
-             env(safe-area-inset-left, 12px);
+    padding:
+        env(safe-area-inset-top, 12px)
+        env(safe-area-inset-right, 12px)
+        env(safe-area-inset-bottom, 20px)
+        env(safe-area-inset-left, 12px);
     display: flex;
     flex-direction: column;
 }
 
 h2 {
     font-size: 17px;
+    font-weight: 600;
     margin: 0 0 10px;
+    color: #000;
 }
 
 /* =========================
-   列表（固定高度）
+   列表（iOS 风格）
 ========================= */
 .video-list {
     height: 150px;
     background: #fff;
     border-radius: 10px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
-/* ✅ 按钮高度 + 居中 */
+/* ✅ iOS 原生级列表项 */
 .video-item {
     height: 44px;
-    display: flex;
-    align-items: center;      /* ✅ 垂直居中 */
+    line-height: 44px;          /* ✅ 核心：单行绝对居中 */
     padding: 0 14px;
-    font-size: 14px;
+    font-size: 15px;
+    color: #000;
     border-bottom: 1px solid #eee;
 }
 
@@ -68,27 +72,26 @@ h2 {
     border-bottom: none;
 }
 
-/* ✅ 5 色 */
+/* ✅ 5 色（更 iOS） */
 .color-0 { background: #ffecec; }
 .color-1 { background: #fff4e5; }
 .color-2 { background: #ecf9ff; }
 .color-3 { background: #eef9f0; }
 .color-4 { background: #f4ecff; }
 
-/* ✅ 选中 */
+/* ✅ 选中态 */
 .video-item.active {
     background: #d4f8dc !important;
     font-weight: 600;
 }
 
 /* =========================
-   播放器（减 10dp）
+   播放器区域
 ========================= */
 .player {
     flex: 1;
     min-height: 0;
     margin-top: 10px;
-    height: calc(100% - 150px - 30px); /* ✅ 明确减 10px */
     background: #000;
     border-radius: 10px;
     overflow: hidden;
@@ -116,7 +119,7 @@ video, iframe {
 
 <script>
 /* =========================
-   ✅ 禁止双指 / 三指缩放
+   禁止多指缩放
 ========================= */
 document.addEventListener("touchmove", e => {
     if (e.touches.length > 1) {
@@ -125,7 +128,7 @@ document.addEventListener("touchmove", e => {
 }, { passive: false });
 
 /* =========================
-   加载 TXT
+   加载 video.txt
 ========================= */
 const txtUrl = "video.txt";
 
@@ -148,8 +151,6 @@ fetch(txtUrl)
     lines.forEach((url, index) => {
         const div = document.createElement("div");
         div.className = `video-item color-${index}`;
-
-        /* ✅ 文本节点居中 */
         div.textContent = `点击播放第 ${index + 1} 个视频`;
 
         div.onclick = () => {
@@ -170,6 +171,9 @@ fetch(txtUrl)
         "无法加载 txt 文件（请用 Live Server）";
 });
 
+/* =========================
+   播放器切换
+========================= */
 function playVideo(url) {
     const player = document.getElementById("player");
 
