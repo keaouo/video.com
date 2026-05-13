@@ -2,8 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+
+<!-- ✅ 禁止缩放 + 安全区 -->
 <meta name="viewport"
-  content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 
 <title>视频播放器</title>
 
@@ -37,29 +39,42 @@ h2 {
     background: #fff;
     border-radius: 10px;
     overflow-y: auto;
-    max-height: 160px;   /* ✅ 固定高度 */
+    max-height: 160px;
     margin-bottom: 10px;
     box-shadow: 0 2px 6px rgba(0,0,0,.08);
 }
 
+/* ✅ 列表项：居中 + 颜色区分 */
 .video-item {
+    display: flex;
+    align-items: center;          /* ✅ 垂直居中 */
     padding: 12px 14px;
-    border-bottom: 1px solid #eee;
     font-size: 14px;
     cursor: pointer;
+    border-bottom: 1px solid #eee;
 }
 
 .video-item:last-child {
     border-bottom: none;
 }
 
-.video-item:hover {
-    background: #f0f0f5;
+/* ✅ 5 种颜色循环 */
+.color-0 { background: #ffecec; }
+.color-1 { background: #fff4e5; }
+.color-2 { background: #ecf9ff; }
+.color-3 { background: #eef9f0; }
+.color-4 { background: #f4ecff; }
+
+/* ✅ 选中状态（绿色） */
+.video-item.active {
+    background: #d4f8dc !important;
+    font-weight: bold;
 }
 
 /* ===== 视频播放器 ===== */
 .player {
-    flex: 1;              /* ✅ 占满剩余空间 */
+    flex: 1;
+    min-height: 0;   /* ✅ 关键：防止溢出 */
     background: #000;
     border-radius: 10px;
     overflow: hidden;
@@ -108,9 +123,7 @@ fetch(txtUrl)
 .then(res => res.text())
 .then(text => {
     let lines = text.split("\n").map(l => l.trim()).filter(Boolean);
-
-    // ✅ 最多 5 个
-    lines = lines.slice(0, 5);
+    lines = lines.slice(0, 5); // ✅ 最多 5 个
 
     const listEl = document.getElementById("videoList");
     listEl.innerHTML = "";
@@ -122,13 +135,22 @@ fetch(txtUrl)
 
     lines.forEach((url, index) => {
         const div = document.createElement("div");
-        div.className = "video-item";
-        div.innerText = `点击按钮播放第 ${index + 1} 个视频`;
-        div.onclick = () => playVideo(url);
+        div.className = `video-item color-${index}`;
+        div.innerText = `点击播放第 ${index + 1} 个视频`;
+        div.dataset.url = url;
+
+        div.onclick = () => {
+            document.querySelectorAll(".video-item")
+                .forEach(i => i.classList.remove("active"));
+            div.classList.add("active");
+            playVideo(url);
+        };
+
         listEl.appendChild(div);
     });
 
-    // ✅ 默认播放第一个
+    // ✅ 默认选中第一个
+    listEl.firstChild.classList.add("active");
     playVideo(lines[0]);
 })
 .catch(err => {
