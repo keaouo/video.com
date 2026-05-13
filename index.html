@@ -144,7 +144,7 @@ fetch(txtUrl)
     const lines = text.split("\n")
                       .map(l => l.trim())
                       .filter(Boolean)
-                      .slice(0, 3);
+                      .slice(0, 1000);
 
     const listEl = document.getElementById("videoList");
     listEl.innerHTML = "";
