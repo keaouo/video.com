@@ -42,56 +42,62 @@ html, body {
 
 h2 {
     font-size: 17px;
-    font-weight: 600;
     margin: 0 0 10px;
-    color: #000;
+    font-weight: 600;
+    color: #1c1c1e;
 }
 
 /* =========================
-   列表（iOS 风格）
+   列表（修复居中核心）
 ========================= */
 .video-list {
     height: 150px;
     background: #fff;
     border-radius: 10px;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    padding: 0; /* 确保容器内无额外padding影响 */
 }
 
-/* ✅ iOS 原生级列表项 */
+/* ✅ 核心修复：每个列表项使用 Flex 完美居中 */
 .video-item {
     height: 44px;
-    line-height: 44px;          /* ✅ 核心：单行绝对居中 */
-    padding: 0 14px;
-    font-size: 15px;
-    color: #000;
+    /* 使用 Flex 布局 */
+    display: flex;
+    /* 垂直居中 */
+    align-items: center;
+    /* 水平居中（这是之前缺失的关键） */
+    justify-content: center;
+    
+    font-size: 14px;
     border-bottom: 1px solid #eee;
+    cursor: pointer; /* 增加点击手感 */
 }
 
 .video-item:last-child {
     border-bottom: none;
 }
 
-/* ✅ 5 色（更 iOS） */
+/* ✅ 5 色背景 */
 .color-0 { background: #ffecec; }
 .color-1 { background: #fff4e5; }
 .color-2 { background: #ecf9ff; }
 .color-3 { background: #eef9f0; }
 .color-4 { background: #f4ecff; }
 
-/* ✅ 选中态 */
+/* ✅ 选中状态 */
 .video-item.active {
     background: #d4f8dc !important;
     font-weight: 600;
 }
 
 /* =========================
-   播放器区域
+   播放器
 ========================= */
 .player {
     flex: 1;
     min-height: 0;
     margin-top: 10px;
+    height: calc(100% - 150px - 30px);
     background: #000;
     border-radius: 10px;
     overflow: hidden;
@@ -119,7 +125,7 @@ video, iframe {
 
 <script>
 /* =========================
-   禁止多指缩放
+   ✅ 禁止双指 / 三指缩放
 ========================= */
 document.addEventListener("touchmove", e => {
     if (e.touches.length > 1) {
@@ -128,7 +134,7 @@ document.addEventListener("touchmove", e => {
 }, { passive: false });
 
 /* =========================
-   加载 video.txt
+   加载 TXT
 ========================= */
 const txtUrl = "video.txt";
 
@@ -151,6 +157,8 @@ fetch(txtUrl)
     lines.forEach((url, index) => {
         const div = document.createElement("div");
         div.className = `video-item color-${index}`;
+
+        /* ✅ 文本节点居中：通过 CSS 的 justify-content: center 实现 */
         div.textContent = `点击播放第 ${index + 1} 个视频`;
 
         div.onclick = () => {
@@ -171,9 +179,6 @@ fetch(txtUrl)
         "无法加载 txt 文件（请用 Live Server）";
 });
 
-/* =========================
-   播放器切换
-========================= */
 function playVideo(url) {
     const player = document.getElementById("player");
 
