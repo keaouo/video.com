@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 
-<!-- ✅ 禁止缩放 + 安全区 -->
+<!-- ✅ 禁止缩放（基础） -->
 <meta name="viewport"
   content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 
@@ -11,7 +11,7 @@
 
 <style>
 /* =========================
-   基础重置
+   基础
 ========================= */
 * {
     box-sizing: border-box;
@@ -23,10 +23,11 @@ html, body {
     height: 100%;
     background: #f2f2f7;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+    overscroll-behavior: none;
 }
 
 /* =========================
-   主体布局
+   主体
 ========================= */
 .container {
     height: 100%;
@@ -44,21 +45,20 @@ h2 {
 }
 
 /* =========================
-   视频列表（固定高度）
+   列表（固定高度）
 ========================= */
 .video-list {
-    height: 150px;          /* ✅ 固定高度 */
+    height: 150px;
     background: #fff;
     border-radius: 10px;
     overflow-y: auto;
 }
 
-/* 列表项 */
+/* ✅ 按钮高度 + 居中 */
 .video-item {
-    height: 44px;           /* ✅ iOS 标准点击高度 */
+    height: 44px;
     display: flex;
-    align-items: center;    /* ✅ 垂直居中 */
-    justify-content: flex-start;
+    align-items: center;      /* ✅ 垂直居中 */
     padding: 0 14px;
     font-size: 14px;
     border-bottom: 1px solid #eee;
@@ -68,26 +68,27 @@ h2 {
     border-bottom: none;
 }
 
-/* ✅ 5 色区分 */
+/* ✅ 5 色 */
 .color-0 { background: #ffecec; }
 .color-1 { background: #fff4e5; }
 .color-2 { background: #ecf9ff; }
 .color-3 { background: #eef9f0; }
 .color-4 { background: #f4ecff; }
 
-/* ✅ 选中状态 */
+/* ✅ 选中 */
 .video-item.active {
     background: #d4f8dc !important;
     font-weight: 600;
 }
 
 /* =========================
-   视频播放器（自适应）
+   播放器（减 10dp）
 ========================= */
 .player {
-    flex: 1;                /* ✅ 占剩余空间 */
-    min-height: 0;          /* ✅ 防止溢出 */
+    flex: 1;
+    min-height: 0;
     margin-top: 10px;
+    height: calc(100% - 150px - 10px); /* ✅ 明确减 10px */
     background: #000;
     border-radius: 10px;
     overflow: hidden;
@@ -114,6 +115,18 @@ video, iframe {
 </div>
 
 <script>
+/* =========================
+   ✅ 禁止双指 / 三指缩放
+========================= */
+document.addEventListener("touchmove", e => {
+    if (e.touches.length > 1) {
+        e.preventDefault();
+    }
+}, { passive: false });
+
+/* =========================
+   加载 TXT
+========================= */
 const txtUrl = "video.txt";
 
 fetch(txtUrl)
@@ -122,7 +135,7 @@ fetch(txtUrl)
     const lines = text.split("\n")
                       .map(l => l.trim())
                       .filter(Boolean)
-                      .slice(0, 5); // ✅ 最多 5 个
+                      .slice(0, 5);
 
     const listEl = document.getElementById("videoList");
     listEl.innerHTML = "";
@@ -135,6 +148,8 @@ fetch(txtUrl)
     lines.forEach((url, index) => {
         const div = document.createElement("div");
         div.className = `video-item color-${index}`;
+
+        /* ✅ 文本节点居中 */
         div.textContent = `点击播放第 ${index + 1} 个视频`;
 
         div.onclick = () => {
