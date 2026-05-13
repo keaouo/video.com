@@ -10,47 +10,57 @@
 <title>视频播放器</title>
 
 <style>
-/* ===== 基础 ===== */
-body {
-    margin: 0;
-    padding: env(safe-area-inset-top, 12px)
-             env(safe-area-inset-right, 12px)
-             env(safe-area-inset-bottom, 24px)
-             env(safe-area-inset-left, 12px);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-    background: #f2f2f7;
-    height: 100vh;
+/* =========================
+   基础重置
+========================= */
+* {
     box-sizing: border-box;
 }
 
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #f2f2f7;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+}
+
+/* =========================
+   主体布局
+========================= */
 .container {
+    height: 100%;
+    padding: env(safe-area-inset-top, 12px)
+             env(safe-area-inset-right, 12px)
+             env(safe-area-inset-bottom, 20px)
+             env(safe-area-inset-left, 12px);
     display: flex;
     flex-direction: column;
-    height: 100%;
 }
 
 h2 {
-    font-size: 18px;
+    font-size: 17px;
     margin: 0 0 10px;
 }
 
-/* ===== 视频列表 ===== */
+/* =========================
+   视频列表（固定高度）
+========================= */
 .video-list {
+    height: 150px;          /* ✅ 固定高度 */
     background: #fff;
     border-radius: 10px;
     overflow-y: auto;
-    max-height: 160px;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 6px rgba(0,0,0,.08);
 }
 
-/* ✅ 列表项：居中 + 颜色区分 */
+/* 列表项 */
 .video-item {
+    height: 44px;           /* ✅ iOS 标准点击高度 */
     display: flex;
-    align-items: center;          /* ✅ 垂直居中 */
-    padding: 12px 14px;
+    align-items: center;    /* ✅ 垂直居中 */
+    justify-content: flex-start;
+    padding: 0 14px;
     font-size: 14px;
-    cursor: pointer;
     border-bottom: 1px solid #eee;
 }
 
@@ -58,23 +68,26 @@ h2 {
     border-bottom: none;
 }
 
-/* ✅ 5 种颜色循环 */
+/* ✅ 5 色区分 */
 .color-0 { background: #ffecec; }
 .color-1 { background: #fff4e5; }
 .color-2 { background: #ecf9ff; }
 .color-3 { background: #eef9f0; }
 .color-4 { background: #f4ecff; }
 
-/* ✅ 选中状态（绿色） */
+/* ✅ 选中状态 */
 .video-item.active {
     background: #d4f8dc !important;
-    font-weight: bold;
+    font-weight: 600;
 }
 
-/* ===== 视频播放器 ===== */
+/* =========================
+   视频播放器（自适应）
+========================= */
 .player {
-    flex: 1;
-    min-height: 0;   /* ✅ 关键：防止溢出 */
+    flex: 1;                /* ✅ 占剩余空间 */
+    min-height: 0;          /* ✅ 防止溢出 */
+    margin-top: 10px;
     background: #000;
     border-radius: 10px;
     overflow: hidden;
@@ -84,22 +97,6 @@ video, iframe {
     width: 100%;
     height: 100%;
     border: none;
-}
-
-/* ===== 移动端优化 ===== */
-@media (max-width: 768px) {
-    h2 {
-        font-size: 16px;
-    }
-
-    .video-item {
-        font-size: 13px;
-        padding: 10px 12px;
-    }
-
-    .video-list {
-        max-height: 140px;
-    }
 }
 </style>
 </head>
@@ -122,8 +119,10 @@ const txtUrl = "video.txt";
 fetch(txtUrl)
 .then(res => res.text())
 .then(text => {
-    let lines = text.split("\n").map(l => l.trim()).filter(Boolean);
-    lines = lines.slice(0, 5); // ✅ 最多 5 个
+    const lines = text.split("\n")
+                      .map(l => l.trim())
+                      .filter(Boolean)
+                      .slice(0, 5); // ✅ 最多 5 个
 
     const listEl = document.getElementById("videoList");
     listEl.innerHTML = "";
@@ -136,8 +135,7 @@ fetch(txtUrl)
     lines.forEach((url, index) => {
         const div = document.createElement("div");
         div.className = `video-item color-${index}`;
-        div.innerText = `点击播放第 ${index + 1} 个视频`;
-        div.dataset.url = url;
+        div.textContent = `点击播放第 ${index + 1} 个视频`;
 
         div.onclick = () => {
             document.querySelectorAll(".video-item")
@@ -149,11 +147,10 @@ fetch(txtUrl)
         listEl.appendChild(div);
     });
 
-    // ✅ 默认选中第一个
     listEl.firstChild.classList.add("active");
     playVideo(lines[0]);
 })
-.catch(err => {
+.catch(() => {
     document.getElementById("videoList").innerText =
         "无法加载 txt 文件（请用 Live Server）";
 });
